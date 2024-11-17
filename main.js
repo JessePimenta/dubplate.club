@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'record-video.mp4';
+        a.download = 'dubplate-club.mp4';
         a.click();
         URL.revokeObjectURL(url);
         status.textContent = 'video exported';
@@ -290,12 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Draw background if it exists
         if (hasBackground && backgroundElement) {
-          // Create an offscreen canvas for the blurred background
-          const bgCanvas = document.createElement('canvas');
-          bgCanvas.width = canvas.width;
-          bgCanvas.height = canvas.height;
-          const bgCtx = bgCanvas.getContext('2d');
-
           // Scale up the background (1.5x like in CSS)
           const scaleFactor = 1.5;
           const scaledWidth = canvas.width * scaleFactor;
@@ -303,14 +297,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const offsetX = (scaledWidth - canvas.width) / -2;
           const offsetY = (scaledHeight - canvas.height) / -2;
 
-          // Draw and blur the background
-          bgCtx.drawImage(backgroundElement, offsetX, offsetY, scaledWidth, scaledHeight);
-          
-          // Apply blur effect based on device width
-          const blurAmount = window.innerWidth <= 768 ? 34 : 44;
-          ctx.filter = `blur(${blurAmount}px)`;
-          ctx.drawImage(bgCanvas, 0, 0);
-          ctx.filter = 'none';
+          // Apply blur based on device width
+          ctx.filter = `blur(${window.innerWidth <= 768 ? 34 : 44}px)`;
+          ctx.drawImage(backgroundElement, offsetX, offsetY, scaledWidth, scaledHeight);
 
           // Add overlay
           ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
