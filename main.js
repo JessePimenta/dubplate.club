@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Draw background if it exists
-        if (hasBackground) {
+        if (hasBackground && backgroundElement) {
           // Create an offscreen canvas for the blurred background
           const bgCanvas = document.createElement('canvas');
           bgCanvas.width = canvas.width;
@@ -303,10 +303,12 @@ document.addEventListener('DOMContentLoaded', () => {
           const offsetX = (scaledWidth - canvas.width) / -2;
           const offsetY = (scaledHeight - canvas.height) / -2;
 
+          // Draw and blur the background
           bgCtx.drawImage(backgroundElement, offsetX, offsetY, scaledWidth, scaledHeight);
-
-          // Apply blur effect
-          ctx.filter = 'blur(44px)';
+          
+          // Apply blur effect based on device width
+          const blurAmount = window.innerWidth <= 768 ? 34 : 44;
+          ctx.filter = `blur(${blurAmount}px)`;
           ctx.drawImage(bgCanvas, 0, 0);
           ctx.filter = 'none';
 
