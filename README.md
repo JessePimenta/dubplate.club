@@ -10,6 +10,6 @@ That’s why I built this tool — to make it easy for anyone to create rotating
 - upload your artwork
 - customize the background
 - export video
-- perfect for showcasing a clip from a vinyl release
-- streamlines the entire process into a few simple steps
+- showcase a clip from a release
+- do the entire process in just a few steps!
 
