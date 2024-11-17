@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Record Generator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://unpkg.com/wavesurfer.js@2.2.1/dist/wavesurfer.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@2.2.1/dist/plugin/wavesurfer.regions.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Spinning Center Label Video Generator</h1>
+      
+      <div id="status">Upload a song to begin</div>
+      <div class="audio-section">
+        <div class="audio-controls-row">
+          <label class="file-input-label">
+            Choose Audio
+            <input type="file" id="audioInput" accept="audio/*">
+          </label>
+          <div class="audio-controls-right">
+            <button id="playPauseBtn" disabled>Play</button>
+            <button id="stopBtn" disabled>Stop</button>
+          </div>
+        </div>
+        <div class="waveform-container">
+          <div id="waveform"></div>
+        </div>
+      </div>
+      <div class="controls">
+        <label class="file-input-label">
+          Add Artwork
+          <input type="file" id="imageInput" accept="image/*">
+        </label>
+        <label class="file-input-label">
+          Add Background
+          <input type="file" id="backgroundInput" accept="image/*,video/*">
+        </label>
+        <button id="previewBtn" disabled>Preview</button>
+        <button id="exportBtn" disabled>Export Video</button>
+      </div>
+      <div class="preview-container">
+        <div class="record-container">
+          <div id="record" class="record">
+            <!-- Image will be inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>
