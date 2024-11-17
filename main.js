@@ -149,7 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
       status.textContent = 'select a region to export';
       hasRegion = false;
       exportBtn.disabled = true;
-      totalTime.textContent = formatTime(wavesurfer.getDuration());
     }
   });
 
@@ -157,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wavesurfer.on('ready', () => {
     playBtn.disabled = false;
     stopBtn.disabled = false;
+    totalTime.textContent = formatTime(wavesurfer.getDuration());
   });
 
   // Handle region creation and updates
