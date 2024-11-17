@@ -1,3 +1,8 @@
+@font-face {
+  font-family: 'Pixel Bug';
+  src: url('https://raw.githubusercontent.com/JessePimenta/f/main/Pixel%20Bug.woff') format('woff');
+}
+
 :root {
   --bg-color: #1e1e1e;
   --surface-color: #2d2d2d;
@@ -15,29 +20,53 @@
 
 body {
   font-family: 'JetBrains Mono', monospace;
-  background: var(--bg-color);
+  background: #000;
   color: var(--text-color);
-  max-width: 800px;
-  margin: 0 auto;
+  height: 100vh;
   padding: 2rem;
-  line-height: 1.6;
+  padding-right: 0px;
+  /* overflow: hidden; */
 }
 
 .container {
   display: flex;
-  flex-direction: column;
   gap: 2rem;
-  padding: 2rem;
-  border-radius: 12px;
-  border: 1px solid #333;
+  height: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: min(400px, 30vw);
+  min-width: 300px;
+}
+
+.controls * {
+    width: 100%;
+}
+
+.right-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  padding: 2rem 0rem;
+  padding-top: 0px;
+  /* padding-right: 0px; */
 }
 
 h1 {
-  text-align: center;
-  margin: 0;
   font-size: 1.5rem;
-  letter-spacing: -1px;
+  letter-spacing: 1px;
   color: var(--accent-color);
+  font-family: 'Pixel Bug', sans-serif;
+  padding-bottom: 10px;
 }
 
 .preview-container {
@@ -51,6 +80,8 @@ h1 {
   justify-content: center;
   border: 1px solid #333;
   position: relative;
+  /* max-height: calc(100vh); */
+  /* max-width: calc(100vh - 4rem); */
 }
 
 .background-layer {
@@ -77,11 +108,10 @@ h1 {
   position: absolute;
   bottom: 1rem;
   right: 1rem;
-  width: 1rem;
+  width: 2.5rem;
   height: 2.5rem;
   background: rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 20px;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -113,6 +143,8 @@ h1 {
   align-items: center;
   justify-content: center;
   z-index: 1;
+  max-height: calc(100vh - 4rem);
+  max-width: calc(100vh - 4rem);
 }
 
 .record {
@@ -130,21 +162,25 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  clip-path: circle(calc(50% - 0px) at 50% 50%);
+  clip-path: circle(50% at 50% 50%);
 }
 
 .controls {
   display: flex;
+  padding: 16px;
   gap: 1rem;
-  justify-content: center;
   flex-wrap: wrap;
+  border-radius: 12px;
+  border: 1px solid #333333;
 }
 
 .controls button {
-    min-width: 152px;
+  min-width: 120px;
+  flex: 1;
 }
 
-button, .file-input-label {
+button,
+.file-input-label {
   padding: 0.75rem 1.5rem;
   cursor: pointer;
   background: transparent;
@@ -152,40 +188,51 @@ button, .file-input-label {
   border: 1px solid var(--accent-color);
   border-radius: 12px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.775rem;
-  text-transform: uppercase;
+  font-size: 0.675rem;
+  text-transform: lowercase;
   letter-spacing: 1px;
   transition: all 0.3s ease;
+  text-align: center;
 }
 
-button:hover, .file-input-label:hover {
+button:hover,
+.file-input-label:hover {
   background: var(--accent-color);
   color: var(--bg-color);
+  transform: scale(0.98)
+
 }
 
-button:disabled, .file-input-label:disabled {
+button:hover i {
+  color: var(--bg-color);
+  transform: scale(0.9)
+}
+
+button:disabled,
+.file-input-label:disabled {
   border-color: var(--text-secondary);
   color: var(--text-secondary);
   cursor: not-allowed;
 }
 
 #status {
-  text-align: center;
-  /* padding: 1rem; */
-  /* background: #000; */
-  border-radius: 12px;
-  font-size: 0.875rem;
   color: var(--text-secondary);
-  /* border: 1px solid #333; */
+  font-size: 14px;
+  line-height: 150%;
+  min-height: 46px;
 }
 
-input[type="file"] {
+input[type='file'] {
   display: none;
 }
 
 @keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .rotating {
@@ -193,11 +240,13 @@ input[type="file"] {
 }
 
 .audio-section {
-  /* margin-top: 2.5rem; */
-  padding: 1.5rem;
   background: #000;
   border-radius: 12px;
-  border: 1px solid #333;
+  padding: 2rem;
+  padding-left: 0px;
+  padding-right: 0px;
+  border: 1px solid #303030;
+  padding: 16px;
 }
 
 .audio-controls-row {
@@ -218,17 +267,31 @@ input[type="file"] {
   gap: 1rem;
 }
 
+.audio-controls-right button {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.audio-controls-right button i {
+  font-size: 14px;
+}
+
 #waveform {
   background: #000;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid #333;
 }
 
 .time-display {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: 1rem;
   margin-top: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 12px;
   color: var(--text-secondary);
   font-family: 'JetBrains Mono', monospace;
 }
@@ -245,4 +308,28 @@ input[type="file"] {
   margin-top: 0.5rem;
   text-align: center;
   font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
+  }
+
+  .container {
+    flex-direction: column;
+  }
+
+  .left-panel {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .right-panel {
+    padding: 0;
+  }
+
+  .preview-container {
+    max-height: 50vh;
+    max-width: 50vh;
+  }
 }
