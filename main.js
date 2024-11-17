@@ -211,17 +211,16 @@ document.addEventListener('DOMContentLoaded', () => {
       canvas.height = 1080;
       const ctx = canvas.getContext('2d');
 
-      // Set up audio
+      // Set up audio context and stream
       const audioContext = new AudioContext();
       const audioElement = new Audio();
       audioElement.src = URL.createObjectURL(audioFile);
       const source = audioContext.createMediaElementSource(audioElement);
       const dest = audioContext.createMediaStreamDestination();
       source.connect(dest);
-      source.connect(audioContext.destination);
 
       // Set up MediaRecorder with supported mime type
-      const stream = canvas.captureStream();
+      const stream = canvas.captureStream(60); // Ensure 60fps
       const audioStream = dest.stream;
       const tracks = [...stream.getVideoTracks(), ...audioStream.getAudioTracks()];
       const mimeType = getSupportedMimeType();
@@ -247,8 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       recorder.start();
-      audioElement.currentTime = region.start;
-      audioElement.play();
+      audioElement.currentTime = region.start; // Keep this line to ensure correct audio region
+      audioElement.play(); // Audio will stream to recorder but not speakers
 
       const duration = (region.end - region.start) * 1000;
       const startTime = Date.now();
@@ -256,14 +255,40 @@ document.addEventListener('DOMContentLoaded', () => {
       const animate = () => {
         const elapsed = Date.now() - startTime;
         if (elapsed >= duration) {
-          cancelAnimationFrame(animationFrameId);
           recorder.stop();
-          audioElement.pause();
+          cancelAnimationFrame(animationFrameId);
           return;
         }
 
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw background if exists
+        if (hasBackground && backgroundElement) {
+          // Create offscreen canvas for background
+          const bgCanvas = document.createElement('canvas');
+          bgCanvas.width = canvas.width;
+          bgCanvas.height = canvas.height;
+          const bgCtx = bgCanvas.getContext('2d');
+
+          // Scale and position background
+          const scaleFactor = 1.5;
+          const scaledWidth = canvas.width * scaleFactor;
+          const scaledHeight = canvas.height * scaleFactor;
+          const offsetX = (scaledWidth - canvas.width) / -2;
+          const offsetY = (scaledHeight - canvas.height) / -2;
+
+          bgCtx.drawImage(backgroundElement, offsetX, offsetY, scaledWidth, scaledHeight);
+
+          // Apply blur effect
+          ctx.filter = 'blur(44px)';
+          ctx.drawImage(bgCanvas, 0, 0);
+          ctx.filter = 'none';
+
+          // Add overlay
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
 
         // Match CSS animation: 360 degrees per 4.2 seconds
         const degreesPerSecond = 360 / 4.2;
