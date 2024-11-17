@@ -9,7 +9,7 @@ That’s why I built this tool — to make it easy for anyone to create rotating
 What used to require video editing software can be done for free in just a few simple steps. <br><br>
 
 1. Add an audio track<br>
-<img width="425" alt="Screen Shot 2024-11-17 at 3 13 46 PM" src="https://github.com/user-attachments/assets/b5933e7e-2907-4ff4-abe3-59782d1ed086">
+<img width="427" alt="Screen Shot 2024-11-17 at 5 40 24 PM" src="https://github.com/user-attachments/assets/dc1874ed-0a4b-4f99-a987-66ae7bb5cf2a">
 <br><br>
 3. Upload your artwork<br><br>
 <img width="426" alt="Screen Shot 2024-11-17 at 3 14 23 PM" src="https://github.com/user-attachments/assets/e39ec9d5-ce6c-410c-886d-e47a6894f530">
