@@ -24,22 +24,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const playBtn = document.getElementById('playPauseBtn');
   const stopBtn = document.getElementById('stopBtn');
   const status = document.getElementById('status');
+  const currentTime = document.getElementById('currentTime');
+  const totalTime = document.getElementById('totalTime');
   
   let backgroundElement = null;
   let hasBackground = false;
   let hasRegion = false;
-  let animationFrameId = null;
 
-  // Function to get supported mime type
-  function getSupportedMimeType() {
-    const types = [
-      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-      'video/webm;codecs=vp9,opus',
-      'video/webm;codecs=vp8,opus',
-      'video/webm'
-    ];
-    
-    return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
+  // Load default artwork
+  const defaultArtwork = new Image();
+  defaultArtwork.onload = () => {
+    record.innerHTML = '';
+    record.appendChild(defaultArtwork);
+    previewBtn.disabled = false;
+  };
+  defaultArtwork.src = 'https://i.imgur.com/GIfl2Ov.jpeg';
+
+  function formatTime(time) {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  function updateRegionTime(region) {
+    const duration = region.end - region.start;
+    const minutes = Math.floor(duration / 60);
+    const seconds = Math.floor(duration % 60);
+    status.textContent = `clip length is (${minutes}:${seconds.toString().padStart(2, '0')}). export video to generate.`;
   }
 
   // Handle artwork upload
@@ -53,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         record.innerHTML = '';
         record.appendChild(img);
         previewBtn.disabled = false;
-        status.textContent = 'Artwork loaded. Add a background or audio to continue.';
+        status.textContent = 'artwork loaded';
       };
     }
   });
@@ -101,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     previewContainer.appendChild(deleteBtn);
 
     hasBackground = true;
-    status.textContent = 'Background added. Add audio to continue.';
+    status.textContent = 'background added';
   });
 
   function removeBackground() {
@@ -115,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     hasBackground = false;
     backgroundElement = null;
-    status.textContent = 'Background removed.';
+    status.textContent = 'background removed';
   }
 
   // Handle preview toggle
@@ -125,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
       previewBtn.textContent = 'Preview';
     } else {
       record.classList.add('rotating');
-      previewBtn.textContent = 'Stop Preview';
+      previewBtn.textContent = 'stop Preview';
     }
   });
 
@@ -135,9 +146,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (file) {
       const url = URL.createObjectURL(file);
       wavesurfer.load(url);
-      status.textContent = 'Select a region to export';
+      status.textContent = 'select a region to export';
       hasRegion = false;
       exportBtn.disabled = true;
+      totalTime.textContent = formatTime(wavesurfer.getDuration());
     }
   });
 
@@ -147,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stopBtn.disabled = false;
   });
 
-  // Handle region creation
+  // Handle region creation and updates
   wavesurfer.on('region-created', (region) => {
     // Remove any existing regions
     const regions = wavesurfer.regions.list;
@@ -158,26 +170,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     hasRegion = true;
     exportBtn.disabled = false;
-    status.textContent = 'Region selected. Click Export Video to generate.';
+    updateRegionTime(region);
+  });
+
+  wavesurfer.on('region-update-end', (region) => {
+    updateRegionTime(region);
   });
 
   // Handle region removal
   wavesurfer.on('region-removed', () => {
     hasRegion = false;
     exportBtn.disabled = true;
-    status.textContent = 'Select a region to export';
+    status.textContent = 'select a region to export';
+  });
+
+  // Update current time
+  wavesurfer.on('audioprocess', () => {
+    currentTime.textContent = formatTime(wavesurfer.getCurrentTime());
   });
 
   // Play/Pause
   playBtn.addEventListener('click', () => {
     wavesurfer.playPause();
-    playBtn.textContent = wavesurfer.isPlaying() ? 'Pause' : 'Play';
+    const icon = playBtn.querySelector('i');
+    icon.classList.toggle('fa-play');
+    icon.classList.toggle('fa-pause');
   });
 
   // Stop
   stopBtn.addEventListener('click', () => {
     wavesurfer.stop();
-    playBtn.textContent = 'Play';
+    const icon = playBtn.querySelector('i');
+    icon.classList.remove('fa-pause');
+    icon.classList.add('fa-play');
   });
 
   // Export functionality
@@ -186,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const regions = wavesurfer.regions.list;
       const region = Object.values(regions)[0];
       if (!region) {
-        alert('Please select a region in the audio waveform');
+        alert('please select a region in the audio waveform');
         return;
       }
 
@@ -198,12 +223,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const audioFile = audioInput.files[0];
       if (!audioFile) {
-        alert('Please select an audio file first');
+        alert('please select an audio file first');
         return;
       }
 
       exportBtn.disabled = true;
-      status.textContent = 'Generating video...';
+      status.textContent = 'generating video, please wait a moment...';
 
       // Create canvas for video
       const canvas = document.createElement('canvas');
@@ -211,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
       canvas.height = 1080;
       const ctx = canvas.getContext('2d');
 
-      // Set up audio context and stream
+      // Set up audio
       const audioContext = new AudioContext();
       const audioElement = new Audio();
       audioElement.src = URL.createObjectURL(audioFile);
@@ -219,59 +244,59 @@ document.addEventListener('DOMContentLoaded', () => {
       const dest = audioContext.createMediaStreamDestination();
       source.connect(dest);
 
-      // Set up MediaRecorder with supported mime type
-      const stream = canvas.captureStream(60); // Ensure 60fps
+      // Set up MediaRecorder
+      const stream = canvas.captureStream(60);
       const audioStream = dest.stream;
       const tracks = [...stream.getVideoTracks(), ...audioStream.getAudioTracks()];
-      const mimeType = getSupportedMimeType();
-      
       const recorder = new MediaRecorder(new MediaStream(tracks), {
-        mimeType,
-        videoBitsPerSecond: 12000000
+        mimeType: 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"',
+        audioBitsPerSecond: 256000,
+        videoBitsPerSecond: 8000000
       });
 
       const chunks = [];
       recorder.ondataavailable = e => chunks.push(e.data);
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: mimeType });
+        const blob = new Blob(chunks, { type: 'video/mp4' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = 'record-video.mp4';
         a.click();
         URL.revokeObjectURL(url);
-        status.textContent = 'Video exported!';
+        status.textContent = 'video exported';
         exportBtn.disabled = false;
         audioContext.close();
       };
 
+      // Start recording
       recorder.start();
-      audioElement.currentTime = region.start; // Keep this line to ensure correct audio region
-      audioElement.play(); // Audio will stream to recorder but not speakers
-
+      
       const duration = (region.end - region.start) * 1000;
       const startTime = Date.now();
+      const secondsPerRotation = 4.2;
+      const rpm = 60 / secondsPerRotation;
+      const degreesPerFrame = (rpm * 360) / 60;
 
       const animate = () => {
         const elapsed = Date.now() - startTime;
         if (elapsed >= duration) {
           recorder.stop();
-          cancelAnimationFrame(animationFrameId);
           return;
         }
 
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw background if exists
-        if (hasBackground && backgroundElement) {
-          // Create offscreen canvas for background
+        // Draw background if it exists
+        if (hasBackground) {
+          // Create an offscreen canvas for the blurred background
           const bgCanvas = document.createElement('canvas');
           bgCanvas.width = canvas.width;
           bgCanvas.height = canvas.height;
           const bgCtx = bgCanvas.getContext('2d');
 
-          // Scale and position background
+          // Scale up the background (1.5x like in CSS)
           const scaleFactor = 1.5;
           const scaledWidth = canvas.width * scaleFactor;
           const scaledHeight = canvas.height * scaleFactor;
@@ -288,12 +313,14 @@ document.addEventListener('DOMContentLoaded', () => {
           // Add overlay
           ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
+        } else {
+          // Black background if no background image
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        // Match CSS animation: 360 degrees per 4.2 seconds
-        const degreesPerSecond = 360 / 4.2;
-        const rotation = (elapsed / 1000) * degreesPerSecond;
-        
+        // Draw rotating record
+        const rotation = (elapsed / 1000) * degreesPerFrame;
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate((rotation * Math.PI) / 180);
@@ -306,10 +333,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx.restore();
 
-        animationFrameId = requestAnimationFrame(animate);
+        requestAnimationFrame(animate);
       };
 
       animate();
+      
+      // Set audio time and play
+      audioElement.currentTime = region.start;
+      audioElement.play();
     } catch (error) {
       console.error('Export error:', error);
       status.textContent = 'Error exporting video';
