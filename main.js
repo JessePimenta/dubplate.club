@@ -30,21 +30,23 @@ document.addEventListener('DOMContentLoaded', () => {
   let backgroundElement = null;
   let hasBackground = false;
   let hasRegion = false;
-  let blurOverlay = null;
 
-  // Check if running on iOS WebKit
-  const isIOSWebKit = () => {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && 
-           /WebKit/.test(navigator.userAgent) && 
-           !/(CriOS|FxiOS|OPiOS|mercury)/.test(navigator.userAgent);
-  };
+  // Load blur overlay for iOS
+  const blurOverlay = new Image();
+  blurOverlay.src = 'https://i.imgur.com/6X4DbZJ.jpeg';
 
-  // Preload blur overlay for iOS
-  if (isIOSWebKit()) {
-    blurOverlay = new Image();
-    blurOverlay.src = 'https://i.imgur.com/6X4DbZJ.jpeg';
-  }
+  // Detect iOS WebKit
+const isIOSWebKit = () => {
+  const ua = navigator.userAgent.toLowerCase();
+  const isIOSDevice =
+    ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod') &&
+    (ua.includes('safari') || ua.includes('chrome')) ||
+    (ua.includes('macintosh') && navigator.maxTouchPoints > 0);
+  return isIOSDevice && ua.includes('webkit');
+};
 
+
+  
   // Load default artwork
   const defaultArtwork = new Image();
   defaultArtwork.onload = () => {
@@ -275,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'dubplate-club.mp4';
+        a.download = 'record-video.mp4';
         a.click();
         URL.revokeObjectURL(url);
         status.textContent = 'video exported';
@@ -304,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Draw background if it exists
         if (hasBackground) {
+          // Scale up the background (1.5x like in CSS)
           const scaleFactor = 1.5;
           const scaledWidth = canvas.width * scaleFactor;
           const scaledHeight = canvas.height * scaleFactor;
@@ -313,16 +316,16 @@ document.addEventListener('DOMContentLoaded', () => {
           // Draw background
           ctx.drawImage(backgroundElement, offsetX, offsetY, scaledWidth, scaledHeight);
 
-          // For iOS WebKit, use blur overlay image instead of CSS filters
+          // Add dark overlay first
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // For iOS WebKit, apply blur overlay last so it's visible
           if (isIOSWebKit() && blurOverlay && blurOverlay.complete) {
             ctx.globalAlpha = 0.95;
             ctx.drawImage(blurOverlay, 0, 0, canvas.width, canvas.height);
             ctx.globalAlpha = 1.0;
           }
-
-          // Add overlay
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
         } else {
           // Black background if no background image
           ctx.fillStyle = '#000';
