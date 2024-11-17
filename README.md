@@ -1,5 +1,15 @@
-# Why?
+## Why build dublate.club?
 
-As a label owner and someone who uploads music to youtube, i constantly have to edit videos with audio and artwork and I have grown tired of using Adobe Premiere to animate the center label and add an audio track. I streamlined the entire process into a simple interface and minimal steps.
+As a vinyl enthusiast, I’ve noticed that 10–15% of my Instagram feed is filled with vinyl center label videos. Over the years, friends have frequently asked me to help them create these "rotating center label" videos or show them how it’s done.
 
-Now you can easily (and lazily) create rotating center label videos to promote your EP or album. Upload your artwork, add audio, customize the visuals, and export videos in just a few clicks. Perfect for sharing on social media or showcasing your latest release.
+As an artist and label owner myself, I’m no stranger to the tedious process of editing videos with audio and artwork. I’ve spent countless hours in Adobe Premiere animating center labels and adding audio tracks. If you’ve tried this yourself, you know the pain.
+
+That’s why I built this tool — to make it easy for anyone to create rotating center label videos without the hassle.
+
+- add an audio track
+- upload your artwork
+- customize the background
+- export video
+- Perfect for social media promotion or showcasing your latest release,
+- streamlines the entire process into a few steps
+
