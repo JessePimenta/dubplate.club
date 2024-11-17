@@ -73,7 +73,7 @@ h1 {
   width: 100%;
   aspect-ratio: 1/1;
   background: #000;
-  border-radius: 4px;
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -310,6 +310,10 @@ input[type='file'] {
 @media (max-width: 768px) {
   body {
     padding: 1rem;
+  }
+
+  .preview-container {
+    margin-bottom: 20px;
   }
 
   .container {

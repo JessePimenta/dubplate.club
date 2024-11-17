@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let backgroundElement = null;
   let hasBackground = false;
   let hasRegion = false;
+  let prerenderedBackground = null;
 
   // Load default artwork
   const defaultArtwork = new Image();
@@ -51,6 +52,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const minutes = Math.floor(duration / 60);
     const seconds = Math.floor(duration % 60);
     status.textContent = `clip length is (${minutes}:${seconds.toString().padStart(2, '0')}). export video to generate.`;
+  }
+
+  function prerenderBackground(element, width, height) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    // Scale up the background (1.5x like in CSS)
+    const scaleFactor = 1.5;
+    const scaledWidth = width * scaleFactor;
+    const scaledHeight = height * scaleFactor;
+    const offsetX = (scaledWidth - width) / -2;
+    const offsetY = (scaledHeight - height) / -2;
+
+    // Apply blur based on device width
+    const blurAmount = window.innerWidth <= 768 ? 16 : 44;
+    ctx.filter = `blur(${blurAmount}px)`;
+    ctx.drawImage(element, offsetX, offsetY, scaledWidth, scaledHeight);
+    
+    // Add overlay
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, width, height);
+
+    return canvas;
   }
 
   // Handle artwork upload
@@ -111,8 +137,12 @@ document.addEventListener('DOMContentLoaded', () => {
     previewContainer.insertBefore(overlay, backgroundElement.nextSibling);
     previewContainer.appendChild(deleteBtn);
 
-    hasBackground = true;
-    status.textContent = 'background added';
+    // Pre-render the background once it's loaded
+    backgroundElement.onload = () => {
+      prerenderedBackground = prerenderBackground(backgroundElement, 1080, 1080);
+      hasBackground = true;
+      status.textContent = 'background added';
+    };
   });
 
   function removeBackground() {
@@ -126,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     hasBackground = false;
     backgroundElement = null;
+    prerenderedBackground = null;
     status.textContent = 'background removed';
   }
 
@@ -289,21 +320,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Draw background if it exists
-        if (hasBackground && backgroundElement) {
-          // Scale up the background (1.5x like in CSS)
-          const scaleFactor = 1.5;
-          const scaledWidth = canvas.width * scaleFactor;
-          const scaledHeight = canvas.height * scaleFactor;
-          const offsetX = (scaledWidth - canvas.width) / -2;
-          const offsetY = (scaledHeight - canvas.height) / -2;
-
-          // Apply blur based on device width
-          ctx.filter = `blur(${window.innerWidth <= 768 ? 34 : 44}px)`;
-          ctx.drawImage(backgroundElement, offsetX, offsetY, scaledWidth, scaledHeight);
-
-          // Add overlay
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if (hasBackground && prerenderedBackground) {
+          ctx.drawImage(prerenderedBackground, 0, 0);
         } else {
           // Black background if no background image
           ctx.fillStyle = '#000';
