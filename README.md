@@ -1,4 +1,4 @@
-## Why build dublate.club?
+## Why build dubplate.club?
 
 As a vinyl enthusiast, I’ve noticed that 10–15% of my Instagram feed is filled with vinyl center label videos. Over the years, friends have frequently asked me to help them create these "rotating center label" videos or show them how it’s done.
 
