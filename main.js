@@ -30,17 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let backgroundElement = null;
   let hasBackground = false;
   let hasRegion = false;
-  let blurOverlay = null;
-
-  // Load blur overlay image
-  const loadBlurOverlay = () => {
-    return new Promise((resolve) => {
-      blurOverlay = new Image();
-      blurOverlay.onload = () => resolve();
-      blurOverlay.src = 'https://i.imgur.com/6X4DbZJ.jpeg';
-    });
-  };
-  loadBlurOverlay();
 
   // Load default artwork
   const defaultArtwork = new Image();
@@ -309,13 +298,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // Draw background
           ctx.drawImage(backgroundElement, offsetX, offsetY, scaledWidth, scaledHeight);
-
-          // For mobile devices, use the blur overlay image
-          if (window.innerWidth <= 768) {
-            ctx.globalAlpha = 0.95;
-            ctx.drawImage(blurOverlay, 0, 0, canvas.width, canvas.height);
-            ctx.globalAlpha = 1;
-          }
 
           // Add overlay
           ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
