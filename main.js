@@ -27,23 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const currentTime = document.getElementById('currentTime');
   const totalTime = document.getElementById('totalTime');
   
+  // Load blur overlay for mobile
+  const blurOverlay = new Image();
+  blurOverlay.src = 'https://i.imgur.com/6X4DbZJ.jpeg';
+  
   let backgroundElement = null;
   let hasBackground = false;
   let hasRegion = false;
-
-  // Load blur overlay for iOS
-  const blurOverlay = new Image();
-  blurOverlay.src = 'https://i.imgur.com/6X4DbZJ.jpeg';
-
-  // Detect iOS WebKit
-  const isIOSWebKit = () => {
-    const ua = navigator.userAgent.toLowerCase();
-    const isIOSDevice = (
-      (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) &&
-      (ua.includes('safari') || ua.includes('chrome'))
-    ) || (ua.includes('macintosh') && navigator.maxTouchPoints > 0);
-    return isIOSDevice && ua.includes('webkit');
-  };
 
   // Load default artwork
   const defaultArtwork = new Image();
@@ -303,8 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Draw background if it exists
-        if (hasBackground) {
-          // Scale up the background (1.5x like in CSS)
+        if (hasBackground && backgroundElement) {
           const scaleFactor = 1.5;
           const scaledWidth = canvas.width * scaleFactor;
           const scaledHeight = canvas.height * scaleFactor;
@@ -314,12 +303,12 @@ document.addEventListener('DOMContentLoaded', () => {
           // Draw background
           ctx.drawImage(backgroundElement, offsetX, offsetY, scaledWidth, scaledHeight);
 
-          // Add dark overlay first
+          // Add dark overlay
           ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-          // For iOS WebKit, apply blur overlay last so it's visible
-          if (isIOSWebKit() && blurOverlay && blurOverlay.complete) {
+          // Apply blur overlay for mobile viewports
+          if (window.innerWidth <= 768 && blurOverlay.complete) {
             ctx.globalAlpha = 0.95;
             ctx.drawImage(blurOverlay, 0, 0, canvas.width, canvas.height);
             ctx.globalAlpha = 1.0;
