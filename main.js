@@ -36,17 +36,15 @@ document.addEventListener('DOMContentLoaded', () => {
   blurOverlay.src = 'https://i.imgur.com/6X4DbZJ.jpeg';
 
   // Detect iOS WebKit
-const isIOSWebKit = () => {
-  const ua = navigator.userAgent.toLowerCase();
-  const isIOSDevice =
-    ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod') &&
-    (ua.includes('safari') || ua.includes('chrome')) ||
-    (ua.includes('macintosh') && navigator.maxTouchPoints > 0);
-  return isIOSDevice && ua.includes('webkit');
-};
+  const isIOSWebKit = () => {
+    const ua = navigator.userAgent.toLowerCase();
+    const isIOSDevice = (
+      (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) &&
+      (ua.includes('safari') || ua.includes('chrome'))
+    ) || (ua.includes('macintosh') && navigator.maxTouchPoints > 0);
+    return isIOSDevice && ua.includes('webkit');
+  };
 
-
-  
   // Load default artwork
   const defaultArtwork = new Image();
   defaultArtwork.onload = () => {
