@@ -26,6 +26,8 @@ body {
   height: 100vh;
   padding: 2rem;
   padding-right: 0px;
+  padding: 2rem 0rem;
+  padding-top: 0px;
 }
 
 .container {
@@ -34,8 +36,6 @@ body {
   height: 100%;
   max-width: 1800px;
   margin: 0 auto;
-  padding: 2rem 0rem;
-  padding-top: 0px;
 }
 
 .left-panel {
@@ -44,6 +44,8 @@ body {
   gap: 1.5rem;
   width: min(400px, 30vw);
   min-width: 300px;
+  padding-left: 20px;
+  padding-top: 20px;
 }
 
 .controls * {
@@ -62,7 +64,7 @@ h1 {
   letter-spacing: 1px;
   color: var(--accent-color);
   font-family: 'Pixel Bug', sans-serif;
-  padding-bottom: 10px;
+  /* padding-bottom: 10px; */
 }
 
 .preview-container {
@@ -223,6 +225,7 @@ button:disabled,
   font-size: 14px;
   line-height: 150%;
   min-height: 46px;
+  padding-bottom: 10px;
 }
 
 input[type='file'] {
@@ -291,7 +294,7 @@ input[type='file'] {
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 0.5rem;
-  font-size: 12px;
+  font-size: 10px;
   color: var(--text-secondary);
   font-family: 'JetBrains Mono', monospace;
 }

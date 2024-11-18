@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportBtn = document.getElementById('exportBtn');
   const audioInput = document.getElementById('audioInput');
   const playBtn = document.getElementById('playPauseBtn');
-  const stopBtn = document.getElementById('stopBtn');
   const status = document.getElementById('status');
   const currentTime = document.getElementById('currentTime');
   const totalTime = document.getElementById('totalTime');
@@ -126,15 +125,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function removeBackground() {
     const bg = document.querySelector('.background-layer');
+    const overlay = document.querySelector('.overlay-layer');
+    const deleteBtn = document.querySelector('.delete-background');
+    
     if (bg) {
       if (bg.tagName === 'VIDEO') {
         bg.pause();
       }
       bg.remove();
     }
-    const overlay = document.querySelector('.overlay-layer');
-    const deleteBtn = document.querySelector('.delete-background');
-    
     if (overlay) overlay.remove();
     if (deleteBtn) deleteBtn.remove();
     
@@ -186,7 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Enable buttons when audio is ready
   wavesurfer.on('ready', () => {
     playBtn.disabled = false;
-    stopBtn.disabled = false;
     totalTime.textContent = formatTime(wavesurfer.getDuration());
   });
 
@@ -226,14 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const icon = playBtn.querySelector('i');
     icon.classList.toggle('fa-play');
     icon.classList.toggle('fa-pause');
-  });
-
-  // Stop
-  stopBtn.addEventListener('click', () => {
-    wavesurfer.stop();
-    const icon = playBtn.querySelector('i');
-    icon.classList.remove('fa-pause');
-    icon.classList.add('fa-play');
   });
 
   // Export functionality
@@ -320,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Draw background if it exists
-        if (hasBackground) {
+        if (hasBackground && backgroundElement) {
           const scaleFactor = 1.5;
           const scaledWidth = canvas.width * scaleFactor;
           const scaledHeight = canvas.height * scaleFactor;
