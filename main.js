@@ -27,10 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const currentTime = document.getElementById('currentTime');
   const totalTime = document.getElementById('totalTime');
   
-  // Load blur overlay for mobile
-  const blurOverlay = new Image();
-  blurOverlay.src = 'https://i.imgur.com/6X4DbZJ.jpeg';
-  
   let backgroundElement = null;
   let hasBackground = false;
   let hasRegion = false;
@@ -115,6 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
     previewContainer.insertBefore(overlay, backgroundElement.nextSibling);
     previewContainer.appendChild(deleteBtn);
 
+    // Add blur overlay for mobile
+    if (window.innerWidth <= 768) {
+      const blurOverlay = document.createElement('div');
+      blurOverlay.className = 'blur-overlay';
+      previewContainer.insertBefore(blurOverlay, overlay);
+    }
+
     hasBackground = true;
     status.textContent = 'background added';
   });
@@ -122,10 +125,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function removeBackground() {
     const bg = document.querySelector('.background-layer');
     const overlay = document.querySelector('.overlay-layer');
+    const blurOverlay = document.querySelector('.blur-overlay');
     const deleteBtn = document.querySelector('.delete-background');
     
     if (bg) bg.remove();
     if (overlay) overlay.remove();
+    if (blurOverlay) blurOverlay.remove();
     if (deleteBtn) deleteBtn.remove();
     
     hasBackground = false;
@@ -307,11 +312,14 @@ document.addEventListener('DOMContentLoaded', () => {
           ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-          // Apply blur overlay for mobile viewports
-          if (window.innerWidth <= 768 && blurOverlay.complete) {
-            ctx.globalAlpha = 0.95;
-            ctx.drawImage(blurOverlay, 0, 0, canvas.width, canvas.height);
-            ctx.globalAlpha = 1.0;
+          // Add blur overlay for mobile viewports
+          if (window.innerWidth <= 768) {
+            const blurOverlay = document.querySelector('.blur-overlay');
+            if (blurOverlay) {
+              ctx.globalAlpha = 0.95;
+              ctx.drawImage(blurOverlay, 0, 0, canvas.width, canvas.height);
+              ctx.globalAlpha = 1.0;
+            }
           }
         } else {
           // Black background if no background image
