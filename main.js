@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Handle background upload
-  backgroundInput.addEventListener('change', (e) => {
+  backgroundInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -86,13 +86,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create background element
     if (file.type.startsWith('video/')) {
       backgroundElement = document.createElement('video');
-      backgroundElement.autoplay = true;
       backgroundElement.loop = true;
       backgroundElement.muted = true;
-      backgroundElement.playsinline = true; // Required for iOS
-      backgroundElement.setAttribute('webkit-playsinline', ''); // For older iOS versions
+      backgroundElement.playsinline = true;
+      backgroundElement.setAttribute('webkit-playsinline', '');
+      
+      // Wait for video to be loaded
+      backgroundElement.addEventListener('loadedmetadata', () => {
+        status.textContent = 'background video added (preview to play)';
+      });
     } else {
       backgroundElement = document.createElement('img');
+      status.textContent = 'background added';
     }
 
     backgroundElement.src = url;
@@ -113,15 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     previewContainer.insertBefore(overlay, backgroundElement.nextSibling);
     previewContainer.appendChild(deleteBtn);
 
-    // Ensure video plays on mobile
-    if (backgroundElement instanceof HTMLVideoElement) {
-      backgroundElement.play().catch(error => {
-        console.error('Video autoplay failed:', error);
-      });
-    }
-
     hasBackground = true;
-    status.textContent = 'background added';
   });
 
   function removeBackground() {
@@ -129,7 +126,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const overlay = document.querySelector('.overlay-layer');
     const deleteBtn = document.querySelector('.delete-background');
     
-    if (bg) bg.remove();
+    if (bg) {
+      if (bg.tagName === 'VIDEO') {
+        bg.pause();
+      }
+      bg.remove();
+    }
     if (overlay) overlay.remove();
     if (deleteBtn) deleteBtn.remove();
     
@@ -140,12 +142,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle preview toggle
   previewBtn.addEventListener('click', () => {
+    const backgroundVideo = document.querySelector('.background-layer');
+    
     if (record.classList.contains('rotating')) {
       record.classList.remove('rotating');
       previewBtn.textContent = 'Preview';
+      if (backgroundVideo && backgroundVideo.tagName === 'VIDEO') {
+        backgroundVideo.pause();
+      }
     } else {
       record.classList.add('rotating');
-      previewBtn.textContent = 'stop Preview';
+      previewBtn.textContent = 'Stop Preview';
+      if (backgroundVideo && backgroundVideo.tagName === 'VIDEO') {
+        backgroundVideo.play();
+      }
     }
   });
 
