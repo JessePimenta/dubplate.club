@@ -10,7 +10,6 @@
   --text-color: #e0e0e0;
   --text-secondary: #888;
   --error-color: #ff4444;
-  --blur-desktop: 44px;
 }
 
 * {
@@ -24,10 +23,9 @@ body {
   background: #000;
   color: var(--text-color);
   height: 100vh;
-  padding: 2rem;
-  padding-right: 0px;
-  padding: 2rem 0rem;
+  padding: 2rem 2rem;
   padding-top: 0px;
+  padding-right: 0px;
 }
 
 .container {
@@ -36,6 +34,7 @@ body {
   height: 100%;
   max-width: 1800px;
   margin: 0 auto;
+  padding-top: 20px;
 }
 
 .left-panel {
@@ -44,8 +43,6 @@ body {
   gap: 1.5rem;
   width: min(400px, 30vw);
   min-width: 300px;
-  padding-left: 20px;
-  padding-top: 20px;
 }
 
 .controls * {
@@ -64,7 +61,6 @@ h1 {
   letter-spacing: 1px;
   color: var(--accent-color);
   font-family: 'Pixel Bug', sans-serif;
-  /* padding-bottom: 10px; */
 }
 
 .preview-container {
@@ -87,7 +83,6 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: blur(var(--blur-desktop));
   transform: scale(1.5);
 }
 
@@ -224,7 +219,7 @@ button:disabled,
   color: var(--text-secondary);
   font-size: 14px;
   line-height: 150%;
-  min-height: 46px;
+  min-height: 54px;
   padding-bottom: 10px;
 }
 
@@ -316,6 +311,7 @@ input[type='file'] {
 @media (max-width: 768px) {
   body {
     padding: 1rem;
+    padding-top: 0px;
   }
 
   .container {
@@ -334,9 +330,5 @@ input[type='file'] {
   .preview-container {
     max-height: 50vh;
     max-width: 50vh;
-  }
-
-  .background-layer {
-    filter: none;
   }
 }

@@ -299,9 +299,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const rpm = 60 / secondsPerRotation;
       const degreesPerFrame = (rpm * 360) / 60;
 
+      // If there's a video background, start playing it
+      if (backgroundElement && backgroundElement.tagName === 'VIDEO') {
+        backgroundElement.currentTime = 0;
+        await backgroundElement.play();
+      }
+
       const animate = () => {
         const elapsed = Date.now() - startTime;
         if (elapsed >= duration) {
+          if (backgroundElement && backgroundElement.tagName === 'VIDEO') {
+            backgroundElement.pause();
+          }
           recorder.stop();
           return;
         }
