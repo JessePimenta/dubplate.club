@@ -1,6 +1,6 @@
 ## dubplate.club
 
-As a vinyl enthusiast, I’ve noticed that 15-20% of my Instagram feed is filled with vinyl center label videos. Over the years, friends have frequently asked me to help them create these "rotating center label" videos or show them how it’s done.
+Over the years, friends have frequently asked me to help them create these "rotating center label" videos or show them how it’s done.
 
 As an artist and label owner myself, I’m no stranger to the tedious process of editing videos with audio and artwork. I’ve spent countless hours in Adobe Premiere animating center labels and adding audio tracks. If you’ve tried this yourself, you know the pain!
 
