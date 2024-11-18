@@ -88,8 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
       backgroundElement = document.createElement('video');
       backgroundElement.loop = true;
       backgroundElement.muted = true;
-      backgroundElement.playsinline = true;
+      backgroundElement.playsInline = true;
+      backgroundElement.setAttribute('playsinline', '');
       backgroundElement.setAttribute('webkit-playsinline', '');
+      backgroundElement.setAttribute('x-webkit-airplay', 'allow');
+      backgroundElement.setAttribute('data-type', 'video');
       
       // Wait for video to be loaded
       backgroundElement.addEventListener('loadedmetadata', () => {
@@ -123,15 +126,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function removeBackground() {
     const bg = document.querySelector('.background-layer');
-    const overlay = document.querySelector('.overlay-layer');
-    const deleteBtn = document.querySelector('.delete-background');
-    
     if (bg) {
       if (bg.tagName === 'VIDEO') {
         bg.pause();
       }
       bg.remove();
     }
+    const overlay = document.querySelector('.overlay-layer');
+    const deleteBtn = document.querySelector('.delete-background');
+    
     if (overlay) overlay.remove();
     if (deleteBtn) deleteBtn.remove();
     
@@ -154,7 +157,16 @@ document.addEventListener('DOMContentLoaded', () => {
       record.classList.add('rotating');
       previewBtn.textContent = 'Stop Preview';
       if (backgroundVideo && backgroundVideo.tagName === 'VIDEO') {
-        backgroundVideo.play();
+        try {
+          const playPromise = backgroundVideo.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(error => {
+              console.error('Video play error:', error);
+            });
+          }
+        } catch (error) {
+          console.error('Video play error:', error);
+        }
       }
     }
   });
