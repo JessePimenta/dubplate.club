@@ -89,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
       backgroundElement.autoplay = true;
       backgroundElement.loop = true;
       backgroundElement.muted = true;
+      backgroundElement.playsinline = true; // Required for iOS
+      backgroundElement.setAttribute('webkit-playsinline', ''); // For older iOS versions
     } else {
       backgroundElement = document.createElement('img');
     }
@@ -110,6 +112,13 @@ document.addEventListener('DOMContentLoaded', () => {
     previewContainer.insertBefore(backgroundElement, previewContainer.firstChild);
     previewContainer.insertBefore(overlay, backgroundElement.nextSibling);
     previewContainer.appendChild(deleteBtn);
+
+    // Ensure video plays on mobile
+    if (backgroundElement instanceof HTMLVideoElement) {
+      backgroundElement.play().catch(error => {
+        console.error('Video autoplay failed:', error);
+      });
+    }
 
     hasBackground = true;
     status.textContent = 'background added';
@@ -228,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       exportBtn.disabled = true;
-      status.textContent = 'generating video, please wait a moment...';
+      status.textContent = 'creating video, please wait a moment...';
 
       // Create canvas for video
       const canvas = document.createElement('canvas');
