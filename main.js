@@ -27,11 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const currentTime = document.getElementById('currentTime');
   const totalTime = document.getElementById('totalTime');
   
-  // Preload blur overlay image
-  const blurOverlayImage = new Image();
-  blurOverlayImage.src = 'https://i.imgur.com/6X4DbZJ.jpeg';
-  const isMobileViewport = window.innerWidth <= 768;
-
   let backgroundElement = null;
   let hasBackground = false;
   let hasRegion = false;
@@ -266,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'record-video.mp4';
+        a.download = 'dubplate-club.mp4';
         a.click();
         URL.revokeObjectURL(url);
         status.textContent = 'video exported';
@@ -294,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Draw background if it exists
-        if (hasBackground && backgroundElement) {
+        if (hasBackground) {
           const scaleFactor = 1.5;
           const scaledWidth = canvas.width * scaleFactor;
           const scaledHeight = canvas.height * scaleFactor;
@@ -304,16 +299,9 @@ document.addEventListener('DOMContentLoaded', () => {
           // Draw background
           ctx.drawImage(backgroundElement, offsetX, offsetY, scaledWidth, scaledHeight);
 
-          // Add dark overlay
+          // Add overlay
           ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          // Add blur overlay for small screens
-          if (isMobileViewport && blurOverlayImage.complete) {
-            ctx.globalAlpha = 0.05;
-            ctx.drawImage(blurOverlayImage, 0, 0, canvas.width, canvas.height);
-            ctx.globalAlpha = 1.0;
-          }
         } else {
           // Black background if no background image
           ctx.fillStyle = '#000';
