@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   defaultArtwork.src = 'https://i.imgur.com/GIfl2Ov.jpeg';
 
+  // Format time helper function
   function formatTime(time) {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -49,7 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const duration = region.end - region.start;
     const minutes = Math.floor(duration / 60);
     const seconds = Math.floor(duration % 60);
-    status.textContent = `clip length is (${minutes}:${seconds.toString().padStart(2, '0')}). export video to generate.`;
+    const startTime = formatTime(region.start);
+    const endTime = formatTime(region.end);
+    status.textContent = `clip length is ${duration.toFixed(1)}s (${startTime} - ${endTime})`;
   }
 
   // Handle artwork upload
