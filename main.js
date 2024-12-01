@@ -67,9 +67,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 function updateRegionTime(region) {
-  const duration = Math.min(Math.max(region.end - region.start, 10), 60); // Clamp between 10-60s
+  // Calculate clamped duration once
+  const duration = Math.min(Math.max(region.end - region.start, 10), 60);
+  
+  // Update region bounds if needed
+  if (region.end - region.start !== duration) {
+    region.end = region.start + duration;
+  }
+
+  // Format times using clamped duration
   const startTime = formatTime(region.start);
   const endTime = formatTime(region.start + duration);
+  
+  // Update status with clamped duration
   status.textContent = `clip length is ${duration.toFixed(1)}s (${startTime} - ${endTime})`;
 }
 
@@ -153,7 +163,8 @@ function updateRegionTime(region) {
     cropper = null;
   });
 
-  // Handle tempo change
+  // inspired by tempo adjust by nohup: https://miseryconfusion.com/bandcamp-tempo-adjust/
+  // Handle tempo change 
   tempoSlider.addEventListener('input', (e) => {
     const tempo = parseFloat(e.target.value);
     tempoValue.textContent = `${tempo.toFixed(2)}x`;
@@ -403,13 +414,16 @@ function updateRegionTime(region) {
         URL.revokeObjectURL(url);
         status.textContent = 'video exported';
         exportBtn.disabled = false;
-        audioContext.close();
+
+        source.disconnect();
+        monitorNode.disconnect();
+        // audioContext.close();
       };
 
       // Start recording
       recorder.start();
       
-      const duration = (region.end - region.start) * 1000;
+      const duration = Math.min(Math.max(region.end - region.start, 10), 60) * 1000;
       const startTime = Date.now();
       const secondsPerRotation = 4.2;
       const rpm = 60 / secondsPerRotation;
