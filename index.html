@@ -1,63 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Record Generator</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/plasmatic">
-    <script src="https://unpkg.com/wavesurfer.js@2.2.1/dist/wavesurfer.js"></script>
-    <script src="https://unpkg.com/wavesurfer.js@2.2.1/dist/plugin/wavesurfer.regions.min.js"></script>
-  </head>
-  <body>
-    <div class="container">
-      <div class="left-panel">
-        <h1>dubplate.club</h1>
-        <div id="status">a spinning center label video generator. upload a song to begin.</div>
-        <div class="audio-section">
-          <div class="audio-controls-row">
-            <label class="file-input-label">
-              add audio
-              <input type="file" id="audioInput" accept=".mp3,.m4a,.wav,.aac">
-            </label>
-            <div class="audio-controls-right">
-              <button id="playPauseBtn" disabled><i class="fas fa-play"></i></button>
-            </div>
-          </div>
-          <div class="waveform-container">
-            <div id="waveform"></div>
-            <div class="time-display">
-              <span id="currentTime">0:00</span> 
-              <span>/</span>
-              <span id="totalTime">0:00</span>
-            </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=337077808"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '337077808');
+  </script>
+
+  <!-- HTML Meta Tags -->
+  <meta name="description" content="Create spinning vinyl artwork videos">
+
+  <!-- Facebook Meta Tags -->
+  <meta property="og:url" content="https://dubplate.club">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Record Generator">
+  <meta property="og:description" content="Create spinning vinyl artwork videos">
+  <meta property="og:image" content="https://opengraph.b-cdn.net/production/images/c689bb2a-d075-4606-9594-d8de49f5d398.png?token=9mpTnJuDzFMoisre2LzEQMQ29zOdjzqWMGbu8Db921M&height=1200&width=1200&expires=33267984190">
+
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="dubplate.club">
+  <meta property="twitter:url" content="https://dubplate.club">
+  <meta name="twitter:title" content="Record Generator">
+  <meta name="twitter:description" content="Create spinning vinyl artwork videos">
+  <meta name="twitter:image" content="https://opengraph.b-cdn.net/production/images/c689bb2a-d075-4606-9594-d8de49f5d398.png?token=9mpTnJuDzFMoisre2LzEQMQ29zOdjzqWMGbu8Db921M&height=1200&width=1200&expires=33267984190">
+
+  <title>dubplate.club | video generator</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/plasmatic">
+  <!-- Add Cropper.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+  <script src="https://unpkg.com/wavesurfer.js@2.2.1/dist/wavesurfer.js"></script>
+  <script src="https://unpkg.com/wavesurfer.js@2.2.1/dist/plugin/wavesurfer.regions.min.js"></script>
+  <!-- Add Cropper.js Script -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="left-panel">
+      <h1>dubplate.club</h1>
+      <div id="status">a spinning center label video generator. upload audio to begin.</div>
+      <div class="audio-section">
+        <div class="audio-controls-row">
+          <label for="audioInput" class="file-input-label">
+            add audio
+          </label>
+          <input type="file" id="audioInput" accept=".mp3,.m4a,.wav,.aac">
+          <div class="audio-controls-right">
+            <button id="playPauseBtn" disabled aria-label="Play or pause audio"><i class="fas fa-play"></i></button>
           </div>
         </div>
-        <div class="controls">
-          <label class="file-input-label">
-            add artwork
-            <input type="file" id="imageInput" accept="image/*">
-          </label>
-          <label class="file-input-label">
-            add background
-            <input type="file" id="backgroundInput" accept="image/*,video/*">
-          </label>
-          <button id="previewBtn" disabled>preview</button>
-          <button id="exportBtn" disabled>export video</button>
+        <div class="waveform-container">
+          <div id="waveform"></div>
+          <div class="time-display">
+            <span id="currentTime">0:00</span> 
+            <span>/</span>
+            <span id="totalTime">0:00</span>
+          </div>
+        </div>
+        <div class="tempo-controls">
+          <div class="tempo-slider-container">
+            <input type="range" id="tempoSlider" min="0.5" max="2" step="0.01" value="1">
+            <span id="tempoValue">1.00x</span>
+          </div>
+          <button id="resetTempo" class="reset-tempo-btn">reset tempo</button>
         </div>
       </div>
-      
-      <div class="right-panel">
-        <div class="preview-container">
-          <div class="record-container">
-            <div id="record" class="record">
-              <!-- Image will be inserted here -->
+      <div class="controls">
+        <label for="imageInput" class="file-input-label">
+          add artwork
+        </label>
+        <input type="file" id="imageInput" accept="image/*">
+        <label for="backgroundInput" class="file-input-label">
+          add background
+        </label>
+        <input type="file" id="backgroundInput" accept="image/*,video/*">
+        <button id="previewBtn" disabled>preview</button>
+        <button id="exportBtn" disabled>export video</button>
+      </div>
+    </div>
+    
+    <div class="right-panel">
+      <div class="preview-container">
+        <div class="record-container">
+          <div id="record" class="record">
+            <!-- Image will be inserted here -->
+          </div>
+          <!-- Add cropper modal inside record container -->
+          <div id="cropperModal" class="cropper-modal">
+            <div class="cropper-content">
+              <div class="cropper-container">
+                <img id="cropperImage">
+              </div>
+              <div class="cropper-controls">
+                <button id="zoomIn"><i class="fas fa-plus"></i></button>
+                <button id="zoomOut"><i class="fas fa-minus"></i></button>
+                <button id="cropDone">Done</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <script src="main.js"></script>
-  </body>
+  </div>
+  <script type="module" src="main.js"></script>
+</body>
 </html>

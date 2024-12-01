@@ -9,7 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     plugins: [
       WaveSurfer.regions.create({
         dragSelection: true,
-        color: 'rgba(239,250,206, 0.6)'
+        color: 'rgba(239,250,206, 0.6)',
+        minLength: 10,
+        maxLength: 60
       })
     ]
   });
@@ -25,10 +27,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const status = document.getElementById('status');
   const currentTime = document.getElementById('currentTime');
   const totalTime = document.getElementById('totalTime');
-  
+  const tempoSlider = document.getElementById('tempoSlider');
+  const tempoValue = document.getElementById('tempoValue');
+  const resetTempoBtn = document.getElementById('resetTempo');
+  const cropperModal = document.getElementById('cropperModal');
+  const cropperImage = document.getElementById('cropperImage');
+  const zoomIn = document.getElementById('zoomIn');
+  const zoomOut = document.getElementById('zoomOut');
+  const cropDone = document.getElementById('cropDone');
+  const artworkSlider = document.getElementById('artworkSlider');
+  const artworkValue = document.getElementById('artworkValue');
+  const resetArtwork = document.getElementById('resetArtwork');
+
   let backgroundElement = null;
   let hasBackground = false;
   let hasRegion = false;
+  let audioContext = null;
+  let source = null;
+  let audioBuffer = null;
+  let cropper = null;
+  let secondsPerRotation = 4.2; // Default rotation value
+
+  // Analytics tracking function
+  function trackEvent(category, action, label = null) {
+    if (typeof gtag !== 'undefined') {
+      const eventData = {
+        event_category: category,
+        event_label: label
+      };
+      gtag('event', action, eventData);
+    }
+  }
+
+  // Format time helper function
+  function formatTime(time) {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+function updateRegionTime(region) {
+  const duration = Math.min(Math.max(region.end - region.start, 10), 60); // Clamp between 10-60s
+  const startTime = formatTime(region.start);
+  const endTime = formatTime(region.start + duration);
+  status.textContent = `clip length is ${duration.toFixed(1)}s (${startTime} - ${endTime})`;
+}
 
   // Load default artwork
   const defaultArtwork = new Image();
@@ -39,20 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   defaultArtwork.src = 'https://i.imgur.com/GIfl2Ov.jpeg';
 
-  // Format time helper function
-  function formatTime(time) {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  }
-
-  function updateRegionTime(region) {
-    const duration = region.end - region.start;
-    const minutes = Math.floor(duration / 60);
-    const seconds = Math.floor(duration % 60);
-    const startTime = formatTime(region.start);
-    const endTime = formatTime(region.end);
-    status.textContent = `clip length is ${duration.toFixed(1)}s (${startTime} - ${endTime})`;
+  // Initialize Web Audio API context
+  function initAudioContext() {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
   }
 
   // Handle artwork upload
@@ -60,6 +94,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
       const url = URL.createObjectURL(file);
+      
+      // Set up cropper
+      cropperImage.src = url;
+      cropperModal.style.display = 'block';
+      
+      if (cropper) {
+        cropper.destroy();
+      }
+      
+      cropper = new Cropper(cropperImage, {
+        aspectRatio: 1,
+        viewMode: 1,
+        dragMode: 'move',
+        autoCropArea: 1,
+        cropBoxResizable: false,
+        cropBoxMovable: false,
+        guides: false,
+        center: true,
+        highlight: false,
+        background: false,
+        modal: true,
+      });
+
+      trackEvent('Upload', 'artwork_upload', file.type);
+    }
+  });
+
+  // Cropper controls
+  zoomIn.addEventListener('click', () => {
+    cropper.zoom(0.1);
+  });
+
+  zoomOut.addEventListener('click', () => {
+    cropper.zoom(-0.1);
+  });
+
+  cropDone.addEventListener('click', () => {
+    const canvas = cropper.getCroppedCanvas({
+      width: 1080,
+      height: 1080
+    });
+
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
       const img = document.createElement('img');
       img.src = url;
       img.onload = () => {
@@ -68,13 +146,34 @@ document.addEventListener('DOMContentLoaded', () => {
         previewBtn.disabled = false;
         status.textContent = 'artwork loaded';
       };
-    }
+    });
+
+    cropperModal.style.display = 'none';
+    cropper.destroy();
+    cropper = null;
+  });
+
+  // Handle tempo change
+  tempoSlider.addEventListener('input', (e) => {
+    const tempo = parseFloat(e.target.value);
+    tempoValue.textContent = `${tempo.toFixed(2)}x`;
+    wavesurfer.setPlaybackRate(tempo);
+    trackEvent('Interaction', 'adjust_tempo', tempo.toString());
+  });
+
+  // Reset tempo
+  resetTempoBtn.addEventListener('click', () => {
+    tempoSlider.value = "1";
+    tempoValue.textContent = "1.00x";
+    wavesurfer.setPlaybackRate(1);
+    trackEvent('Interaction', 'reset_tempo');
   });
 
   // Handle background upload
   backgroundInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    trackEvent('Upload', 'background_upload', file.type);
 
     // Remove existing background if any
     const existingBg = document.querySelector('.background-layer');
@@ -128,26 +227,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function removeBackground() {
     const bg = document.querySelector('.background-layer');
-    const overlay = document.querySelector('.overlay-layer');
-    const deleteBtn = document.querySelector('.delete-background');
-    
     if (bg) {
       if (bg.tagName === 'VIDEO') {
         bg.pause();
       }
       bg.remove();
     }
+    const overlay = document.querySelector('.overlay-layer');
+    const deleteBtn = document.querySelector('.delete-background');
+    
     if (overlay) overlay.remove();
     if (deleteBtn) deleteBtn.remove();
     
     hasBackground = false;
     backgroundElement = null;
     status.textContent = 'background removed';
+    trackEvent('Interaction', 'remove_background');
   }
 
   // Handle preview toggle
   previewBtn.addEventListener('click', () => {
     const backgroundVideo = document.querySelector('.background-layer');
+    const isStartingPreview = !record.classList.contains('rotating');
     
     if (record.classList.contains('rotating')) {
       record.classList.remove('rotating');
@@ -171,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     }
+    trackEvent('Interaction', isStartingPreview ? 'start_preview' : 'stop_preview');
   });
 
   // Handle audio upload
@@ -182,6 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status.textContent = 'select a region to export';
       hasRegion = false;
       exportBtn.disabled = true;
+      trackEvent('Upload', 'audio_upload', file.type);
     }
   });
 
@@ -203,10 +306,12 @@ document.addEventListener('DOMContentLoaded', () => {
     hasRegion = true;
     exportBtn.disabled = false;
     updateRegionTime(region);
+    trackEvent('Interaction', 'create_region', `${formatTime(region.end - region.start)}`);
   });
 
   wavesurfer.on('region-update-end', (region) => {
     updateRegionTime(region);
+    trackEvent('Interaction', 'update_region', `${formatTime(region.end - region.start)}`);
   });
 
   // Handle region removal
@@ -214,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hasRegion = false;
     exportBtn.disabled = true;
     status.textContent = 'select a region to export';
+    trackEvent('Interaction', 'remove_region');
   });
 
   // Update current time
@@ -224,6 +330,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Play/Pause
   playBtn.addEventListener('click', () => {
     wavesurfer.playPause();
+    const isPlaying = wavesurfer.isPlaying();
+    trackEvent('Interaction', isPlaying ? 'pause_audio' : 'play_audio');
     const icon = playBtn.querySelector('i');
     icon.classList.toggle('fa-play');
     icon.classList.toggle('fa-pause');
@@ -264,9 +372,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const audioContext = new AudioContext();
       const audioElement = new Audio();
       audioElement.src = URL.createObjectURL(audioFile);
+      audioElement.playbackRate = parseFloat(tempoSlider.value);
       const source = audioContext.createMediaElementSource(audioElement);
       const dest = audioContext.createMediaStreamDestination();
-      source.connect(dest);
+      source.connect(dest); // Connect to recording destination
+      const monitorNode = audioContext.createGain();
+      monitorNode.gain.value = 0; // Mute monitoring but keep recording
+      source.connect(monitorNode);
+      monitorNode.connect(audioContext.destination);
 
       // Set up MediaRecorder
       const stream = canvas.captureStream(60);
@@ -362,6 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Set audio time and play
       audioElement.currentTime = region.start;
+      audioElement.playbackRate = parseFloat(tempoSlider.value);
       audioElement.play();
     } catch (error) {
       console.error('Export error:', error);
