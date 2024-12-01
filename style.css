@@ -332,6 +332,7 @@ input[type='file'] {
   .preview-container {
     max-height: 50vh;
     max-width: 50vh;
+    border-radius: 12px;
   }
 }
 
