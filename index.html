@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+
   <!-- Google Analytics -->
+
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js"></script>
+
   <script async src="https://www.googletagmanager.com/gtag/js?id=337077808"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -43,6 +47,7 @@
   <script src="https://unpkg.com/wavesurfer.js@2.2.1/dist/plugin/wavesurfer.regions.min.js"></script>
   <!-- Add Cropper.js Script -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+  <script src="https://unpkg.com/@giphy/js-fetch-api/dist/index.js"></script>
 </head>
 <body>
   <div class="container">
@@ -67,13 +72,7 @@
             <span id="totalTime">0:00</span>
           </div>
         </div>
-        <div class="tempo-controls">
-          <div class="tempo-slider-container">
-            <input type="range" id="tempoSlider" min="0.5" max="2" step="0.01" value="1">
-            <span id="tempoValue">1.00x</span>
-          </div>
-          <button id="resetTempo" class="reset-tempo-btn">reset tempo</button>
-        </div>
+
       </div>
       <div class="controls">
         <label for="imageInput" class="file-input-label">
@@ -88,7 +87,7 @@
         <button id="exportBtn" disabled>export video</button>
       </div>
     </div>
-    
+
     <div class="right-panel">
       <div class="preview-container">
         <div class="record-container">
