@@ -27,9 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const status = document.getElementById('status');
   const currentTime = document.getElementById('currentTime');
   const totalTime = document.getElementById('totalTime');
-  const tempoSlider = document.getElementById('tempoSlider');
-  const tempoValue = document.getElementById('tempoValue');
-  const resetTempoBtn = document.getElementById('resetTempo');
   const cropperModal = document.getElementById('cropperModal');
   const cropperImage = document.getElementById('cropperImage');
   const zoomIn = document.getElementById('zoomIn');
@@ -38,6 +35,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const artworkSlider = document.getElementById('artworkSlider');
   const artworkValue = document.getElementById('artworkValue');
   const resetArtwork = document.getElementById('resetArtwork');
+
+  /* Temporarily disabled Giphy functionality
+  // Initialize Giphy
+  const giphyApiKey = 'GlVGYHkr3WSBnllca54iNt0yFbjz7L65';  // Public API key for testing
+  const giphyPanel = document.getElementById('giphyPanel');
+
+  // Initialize Giphy SDK after its script is loaded
+  let giphySDK;
+  window.onload = async () => {
+    const { GiphyFetch } = await import('https://esm.sh/@giphy/js-fetch-api');
+    giphySDK = new GiphyFetch(giphyApiKey);
+  };
+
+  const giphyBtn = document.getElementById('giphyBtn');
+  const giphySearch = document.getElementById('giphySearch');
+  const giphyResults = document.getElementById('giphyResults');
+  */
 
   let backgroundElement = null;
   let hasBackground = false;
@@ -67,19 +81,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 function updateRegionTime(region) {
-  // Calculate clamped duration once
-  const duration = Math.min(Math.max(region.end - region.start, 10), 60);
-  
-  // Update region bounds if needed
-  if (region.end - region.start !== duration) {
-    region.end = region.start + duration;
+  // Enforce strict 10-60s limit
+  const MIN_DURATION = 10;
+  const MAX_DURATION = 60;
+  const currentDuration = region.end - region.start;
+
+  let newStart = region.start;
+  let newEnd = region.end;
+
+  if (currentDuration < MIN_DURATION) {
+    newEnd = newStart + MIN_DURATION;
+  } else if (currentDuration > MAX_DURATION) {
+    newEnd = newStart + MAX_DURATION;
   }
 
-  // Format times using clamped duration
-  const startTime = formatTime(region.start);
-  const endTime = formatTime(region.start + duration);
-  
-  // Update status with clamped duration
+  // Only update if changed
+  if (newEnd !== region.end) {
+    region.update({
+      start: newStart,
+      end: newEnd
+    });
+  }
+
+  const duration = newEnd - newStart;
+  const startTime = formatTime(newStart);
+  const endTime = formatTime(newEnd);
+
   status.textContent = `clip length is ${duration.toFixed(1)}s (${startTime} - ${endTime})`;
 }
 
@@ -90,7 +117,7 @@ function updateRegionTime(region) {
     record.appendChild(defaultArtwork);
     previewBtn.disabled = false;
   };
-  defaultArtwork.src = 'https://i.imgur.com/GIfl2Ov.jpeg';
+  defaultArtwork.src = '/attached_assets/dubplate-default.jpeg?' + Date.now();
 
   // Initialize Web Audio API context
   function initAudioContext() {
@@ -104,15 +131,15 @@ function updateRegionTime(region) {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
       const url = URL.createObjectURL(file);
-      
+
       // Set up cropper
       cropperImage.src = url;
       cropperModal.style.display = 'block';
-      
+
       if (cropper) {
         cropper.destroy();
       }
-      
+
       cropper = new Cropper(cropperImage, {
         aspectRatio: 1,
         viewMode: 1,
@@ -163,22 +190,7 @@ function updateRegionTime(region) {
     cropper = null;
   });
 
-  // inspired by tempo adjust by nohup: https://miseryconfusion.com/bandcamp-tempo-adjust/
-  // Handle tempo change 
-  tempoSlider.addEventListener('input', (e) => {
-    const tempo = parseFloat(e.target.value);
-    tempoValue.textContent = `${tempo.toFixed(2)}x`;
-    wavesurfer.setPlaybackRate(tempo);
-    trackEvent('Interaction', 'adjust_tempo', tempo.toString());
-  });
 
-  // Reset tempo
-  resetTempoBtn.addEventListener('click', () => {
-    tempoSlider.value = "1";
-    tempoValue.textContent = "1.00x";
-    wavesurfer.setPlaybackRate(1);
-    trackEvent('Interaction', 'reset_tempo');
-  });
 
   // Handle background upload
   backgroundInput.addEventListener('change', async (e) => {
@@ -205,7 +217,7 @@ function updateRegionTime(region) {
       backgroundElement.setAttribute('webkit-playsinline', '');
       backgroundElement.setAttribute('x-webkit-airplay', 'allow');
       backgroundElement.setAttribute('data-type', 'video');
-      
+
       // Wait for video to be loaded
       backgroundElement.addEventListener('loadedmetadata', () => {
         status.textContent = 'background video added (preview to play)';
@@ -217,7 +229,7 @@ function updateRegionTime(region) {
 
     backgroundElement.src = url;
     backgroundElement.className = 'background-layer';
-    
+
     // Create overlay
     const overlay = document.createElement('div');
     overlay.className = 'overlay-layer';
@@ -236,6 +248,117 @@ function updateRegionTime(region) {
     hasBackground = true;
   });
 
+  /* Temporarily disabled Giphy functionality
+  // Giphy panel handlers
+  // Dragging functionality
+  let isDragging = false;
+  let currentX;
+  let currentY;
+  let initialX;
+  let initialY;
+  let xOffset = 0;
+  let yOffset = 0;
+
+  function dragStart(e) {
+    if (e.type === "mousedown") {
+      initialX = e.clientX - xOffset;
+      initialY = e.clientY - yOffset;
+    }
+    if (e.target.closest('#giphySearch') || e.target.closest('.giphy-results')) return;
+    isDragging = true;
+  }
+
+  function dragEnd() {
+    initialX = currentX;
+    initialY = currentY;
+    isDragging = false;
+  }
+
+  function drag(e) {
+    if (isDragging) {
+      e.preventDefault();
+      currentX = e.clientX - initialX;
+      currentY = e.clientY - initialY;
+      xOffset = currentX;
+      yOffset = currentY;
+      giphyPanel.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    }
+  }
+
+  giphyPanel.addEventListener('mousedown', dragStart);
+  document.addEventListener('mousemove', drag);
+  document.addEventListener('mouseup', dragEnd);
+
+  giphyBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    giphyPanel.style.display = 'block';
+    // Reset position when opening
+    giphyPanel.style.transform = 'translate(0, 0)';
+    xOffset = 0;
+    yOffset = 0;
+    searchGiphy();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!giphyPanel.contains(e.target) && e.target !== giphyBtn) {
+      giphyPanel.style.display = 'none';
+    }
+  });
+
+  let searchTimeout;
+  giphySearch.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(searchGiphy, 500);
+  });
+
+  async function searchGiphy() {
+    try {
+      if (!giphySDK) {
+        status.textContent = 'Giphy is still initializing, please try again in a moment';
+        return;
+      }
+      const query = giphySearch.value.trim() || 'shader';
+      const { data } = await giphySDK.search(query, { limit: 10 });
+
+      giphyResults.innerHTML = data.map(gif => `
+        <div class="giphy-item" data-gif-url="${gif.images.original.url}">
+          <img src="${gif.images.fixed_height.url}" alt="${gif.title}">
+        </div>
+      `).join('');
+
+      giphyResults.querySelectorAll('.giphy-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const gifUrl = item.dataset.gifUrl;
+          setGiphyBackground(gifUrl);
+          giphyPanel.style.display = 'none';
+          giphyBtn.textContent = 'clear gif';
+          trackEvent('Interaction', 'select_giphy', gifUrl);
+        });
+      });
+    } catch (error) {
+      console.error('Giphy search error:', error);
+      status.textContent = 'Error loading GIFs';
+    }
+  }
+
+  function setGiphyBackground(url) {
+    removeBackground();
+    backgroundElement = document.createElement('img');
+    backgroundElement.src = url;
+    backgroundElement.className = 'background-layer';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay-layer';
+
+    const previewContainer = document.querySelector('.preview-container');
+    previewContainer.insertBefore(backgroundElement, previewContainer.firstChild);
+    previewContainer.insertBefore(overlay, backgroundElement.nextSibling);
+
+    hasBackground = true;
+    giphyBtn.onclick = removeBackground;
+  }
+  */
+
   function removeBackground() {
     const bg = document.querySelector('.background-layer');
     if (bg) {
@@ -246,13 +369,13 @@ function updateRegionTime(region) {
     }
     const overlay = document.querySelector('.overlay-layer');
     const deleteBtn = document.querySelector('.delete-background');
-    
+
     if (overlay) overlay.remove();
     if (deleteBtn) deleteBtn.remove();
-    
+
     hasBackground = false;
     backgroundElement = null;
-    status.textContent = 'background removed';
+    status.textContent = ''; //Removed 'background removed'
     trackEvent('Interaction', 'remove_background');
   }
 
@@ -260,7 +383,7 @@ function updateRegionTime(region) {
   previewBtn.addEventListener('click', () => {
     const backgroundVideo = document.querySelector('.background-layer');
     const isStartingPreview = !record.classList.contains('rotating');
-    
+
     if (record.classList.contains('rotating')) {
       record.classList.remove('rotating');
       previewBtn.textContent = 'Preview';
@@ -287,14 +410,13 @@ function updateRegionTime(region) {
   });
 
   // Handle audio upload
-  audioInput.addEventListener('change', (e) => {
+  audioInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
+      await resetAudioState();
       const url = URL.createObjectURL(file);
       wavesurfer.load(url);
       status.textContent = 'select a region to export';
-      hasRegion = false;
-      exportBtn.disabled = true;
       trackEvent('Upload', 'audio_upload', file.type);
     }
   });
@@ -317,12 +439,26 @@ function updateRegionTime(region) {
     hasRegion = true;
     exportBtn.disabled = false;
     updateRegionTime(region);
+    wavesurfer.seekTo(region.start / wavesurfer.getDuration());
     trackEvent('Interaction', 'create_region', `${formatTime(region.end - region.start)}`);
   });
 
   wavesurfer.on('region-update-end', (region) => {
     updateRegionTime(region);
+    wavesurfer.seekTo(region.start / wavesurfer.getDuration());
     trackEvent('Interaction', 'update_region', `${formatTime(region.end - region.start)}`);
+  });
+
+  // Add region loop behavior
+  wavesurfer.on('audioprocess', () => {
+    currentTime.textContent = formatTime(wavesurfer.getCurrentTime());
+    const regions = wavesurfer.regions.list;
+    const region = Object.values(regions)[0];
+    if (region && wavesurfer.isPlaying()) {
+      if (wavesurfer.getCurrentTime() >= region.end) {
+        wavesurfer.seekTo(region.start / wavesurfer.getDuration());
+      }
+    }
   });
 
   // Handle region removal
@@ -349,7 +485,20 @@ function updateRegionTime(region) {
   });
 
   // Export functionality
+  let isExporting = false;
+
+  async function cleanupExport() {
+    isExporting = false;
+    exportBtn.disabled = false;
+    if (audioContext) {
+      await audioContext.close();
+      audioContext = null;
+    }
+  }
+
   exportBtn.addEventListener('click', async () => {
+    if (isExporting) return;
+
     try {
       const regions = wavesurfer.regions.list;
       const region = Object.values(regions)[0];
@@ -357,6 +506,8 @@ function updateRegionTime(region) {
         alert('please select a region in the audio waveform');
         return;
       }
+
+      isExporting = true;
 
       const img = record.querySelector('img');
       if (!img) {
@@ -379,11 +530,17 @@ function updateRegionTime(region) {
       canvas.height = 1080;
       const ctx = canvas.getContext('2d');
 
-      // Set up audio
-      const audioContext = new AudioContext();
+      // Set up audio with proper cleanup
+      audioContext = new AudioContext();
       const audioElement = new Audio();
       audioElement.src = URL.createObjectURL(audioFile);
-      audioElement.playbackRate = parseFloat(tempoSlider.value);
+      const playbackRate = 1.0; // Constant playback rate
+      audioElement.playbackRate = playbackRate;
+
+      // Cleanup audio URL when done
+      audioElement.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+      };
       const source = audioContext.createMediaElementSource(audioElement);
       const dest = audioContext.createMediaStreamDestination();
       source.connect(dest); // Connect to recording destination
@@ -411,18 +568,25 @@ function updateRegionTime(region) {
         a.href = url;
         a.download = 'dubplate-club.mp4';
         a.click();
-        URL.revokeObjectURL(url);
-        status.textContent = 'video exported';
-        exportBtn.disabled = false;
 
+        URL.revokeObjectURL(url);
         source.disconnect();
         monitorNode.disconnect();
-        // audioContext.close();
+
+        status.textContent = 'video exported successfully';
+        exportBtn.disabled = false;
+      };
+
+      // Ensure export stops on errors
+      recorder.onerror = async (event) => {
+        console.error('Recorder error:', event.error);
+        status.textContent = 'Recording failed';
+        await cleanupExport();
       };
 
       // Start recording
       recorder.start();
-      
+
       const duration = Math.min(Math.max(region.end - region.start, 10), 60) * 1000;
       const startTime = Date.now();
       const secondsPerRotation = 4.2;
@@ -486,10 +650,10 @@ function updateRegionTime(region) {
       };
 
       animate();
-      
+
       // Set audio time and play
       audioElement.currentTime = region.start;
-      audioElement.playbackRate = parseFloat(tempoSlider.value);
+      audioElement.playbackRate = playbackRate;
       audioElement.play();
     } catch (error) {
       console.error('Export error:', error);
@@ -497,4 +661,17 @@ function updateRegionTime(region) {
       exportBtn.disabled = false;
     }
   });
+
+  async function resetAudioState() {
+    // Clean up existing regions
+    Object.keys(wavesurfer.regions.list).forEach(id => {
+      wavesurfer.regions.list[id].remove();
+    });
+    hasRegion = false;
+    exportBtn.disabled = true;
+    if (audioContext) {
+      await audioContext.close();
+      audioContext = null;
+    }
+  }
 });
